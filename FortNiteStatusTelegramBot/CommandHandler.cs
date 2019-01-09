@@ -1,12 +1,12 @@
 ﻿using Refit;
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
-using System.Text;
 using Telegram.Bot.Types;
-using System.Net.Http;
 using Telegram.Bot.Types.Enums;
 
 namespace FortNiteStatusTelegramBot
@@ -30,21 +30,21 @@ namespace FortNiteStatusTelegramBot
         }
 
         public Task HandleCommand(Message message, string command, string args)
-            => !_commands.ContainsKey(command)
-                    ? _bot.SendTextMessageAsync(message.Chat, "This command is invalid")
+            => !_commands.ContainsKey(command = command.ToLower())
+                    ? _bot.SendTextMessageAsync(message.Chat, "This command is invalid", replyToMessageId: message.MessageId)
                     : _commands[command](args, message);
 
         #region COMMANDS
         private async Task GetStats(string args, Message message)
         {
             if (string.IsNullOrWhiteSpace(args))
-                await _bot.SendTextMessageAsync(message.Chat, $"You must specify at least player nick: {message.Text} nickname");
+                await _bot.SendTextMessageAsync(message.Chat, $"You must specify at least player nick: {message.Text} nickname", replyToMessageId: message.MessageId);
             else
             {
                 var argsParts = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 var playerPerPlatform = await GetPlayerFromArgs(message, argsParts);
                 if (playerPerPlatform.Length == 0)
-                    await _bot.SendTextMessageAsync(message.Chat, $"Player *{argsParts[0]} was not found*", ParseMode.Markdown);
+                    await _bot.SendTextMessageAsync(message.Chat, $"Player *{argsParts[0]} was not found*", ParseMode.Markdown, replyToMessageId: message.MessageId);
                 else
                     foreach (var player in playerPerPlatform)
                         await AnswerWithPlayerStats(message, player.epicUserHandle, player);
@@ -54,20 +54,20 @@ namespace FortNiteStatusTelegramBot
         private async Task GetLatestsMatches(string args, Message message)
         {
             if (string.IsNullOrWhiteSpace(args))
-                await _bot.SendTextMessageAsync(message.Chat, $"You must specify at least player nick: {message.Text} nickname");
+                await _bot.SendTextMessageAsync(message.Chat, $"You must specify at least player nick: {message.Text} nickname", replyToMessageId: message.MessageId);
             else
             {
                 var argsParts = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 var playerPerPlatform = await GetPlayerFromArgs(message, argsParts);
 
                 if (playerPerPlatform.Length == 0)
-                    await _bot.SendTextMessageAsync(message.Chat, $"Player *{argsParts[0]} was not found*", ParseMode.Markdown);
+                    await _bot.SendTextMessageAsync(message.Chat, $"Player *{argsParts[0]} was not found*", ParseMode.Markdown, replyToMessageId: message.MessageId);
                 else
                     foreach (var player in playerPerPlatform)
                     {
                         var sb = CreateRecentMatchesMessage(player);
 
-                        await _bot.SendTextMessageAsync(message.Chat, $"Listing *{player.epicUserHandle}'s* recent matches on *{player.platformNameLong}*:{Environment.NewLine}{sb}", ParseMode.Markdown);
+                        await _bot.SendTextMessageAsync(message.Chat, $"Listing *{player.epicUserHandle}'s* recent matches on *{player.platformNameLong}*:{Environment.NewLine}{sb}", ParseMode.Markdown, replyToMessageId: message.MessageId);
                     }
             }
         }
