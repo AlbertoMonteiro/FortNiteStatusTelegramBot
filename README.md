@@ -4,7 +4,7 @@ This is a simple bot that can retrive player status on Fortnite.
 
 # Setup
 
-You must create appSettings.json file like this
+You must create appSettings.json file inside **FortNiteStatusTelegramBot** folder
 
     {
       "TRN-Api-Key": "your key",
