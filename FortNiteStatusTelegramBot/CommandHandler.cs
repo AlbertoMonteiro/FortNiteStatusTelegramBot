@@ -7,6 +7,7 @@ using Telegram.Bot;
 using System.Text;
 using Telegram.Bot.Types;
 using System.Net.Http;
+using Telegram.Bot.Types.Enums;
 
 namespace FortNiteStatusTelegramBot
 {
@@ -21,7 +22,8 @@ namespace FortNiteStatusTelegramBot
             _commands = new Dictionary<string, Func<string, Message, Task>>
             {
                 ["stats"] = GetStats,
-                ["recentmatches"] = GetLatestsMatches
+                ["recentmatches"] = GetLatestsMatches,
+                ["help"] = GetHelp
             };
             _bot = bot;
             _client = RestService.For<IFortNiteTrackerApi>(new HttpClient(new AuthenticatedHttpClientHandler(trnApiKey)) { BaseAddress = new Uri("https://api.fortnitetracker.com") });
@@ -35,30 +37,51 @@ namespace FortNiteStatusTelegramBot
         #region COMMANDS
         private async Task GetStats(string args, Message message)
         {
-            var argsParts = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var playerPerPlatform = await GetPlayerFromArgs(message, argsParts);
-            if (playerPerPlatform.Length == 0)
-                await _bot.SendTextMessageAsync(message.Chat, $"Player *{argsParts[0]} was not found*", Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            if (string.IsNullOrWhiteSpace(args))
+                await _bot.SendTextMessageAsync(message.Chat, $"You must specify at least player nick: {message.Text} nickname");
             else
-                foreach (var player in playerPerPlatform)
-                    await AnswerWithPlayerStats(message, player.epicUserHandle, player);
+            {
+                var argsParts = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var playerPerPlatform = await GetPlayerFromArgs(message, argsParts);
+                if (playerPerPlatform.Length == 0)
+                    await _bot.SendTextMessageAsync(message.Chat, $"Player *{argsParts[0]} was not found*", ParseMode.Markdown);
+                else
+                    foreach (var player in playerPerPlatform)
+                        await AnswerWithPlayerStats(message, player.epicUserHandle, player);
+            }
         }
 
         private async Task GetLatestsMatches(string args, Message message)
         {
-            var argsParts = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var playerPerPlatform = await GetPlayerFromArgs(message, argsParts);
-
-            if (playerPerPlatform.Length == 0)
-                await _bot.SendTextMessageAsync(message.Chat, $"Player *{argsParts[0]} was not found*", Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            if (string.IsNullOrWhiteSpace(args))
+                await _bot.SendTextMessageAsync(message.Chat, $"You must specify at least player nick: {message.Text} nickname");
             else
-                foreach (var player in playerPerPlatform)
-                {
-                    var sb = CreateRecentMatchesMessage(player);
+            {
+                var argsParts = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var playerPerPlatform = await GetPlayerFromArgs(message, argsParts);
 
-                    await _bot.SendTextMessageAsync(message.Chat, $"Listing *{player.epicUserHandle}'s* recent matches on *{player.platformNameLong}*:{Environment.NewLine}{sb}", Telegram.Bot.Types.Enums.ParseMode.Markdown);
-                }
+                if (playerPerPlatform.Length == 0)
+                    await _bot.SendTextMessageAsync(message.Chat, $"Player *{argsParts[0]} was not found*", ParseMode.Markdown);
+                else
+                    foreach (var player in playerPerPlatform)
+                    {
+                        var sb = CreateRecentMatchesMessage(player);
+
+                        await _bot.SendTextMessageAsync(message.Chat, $"Listing *{player.epicUserHandle}'s* recent matches on *{player.platformNameLong}*:{Environment.NewLine}{sb}", ParseMode.Markdown);
+                    }
+            }
         }
+
+        private Task GetHelp(string args, Message message)
+            => _bot.SendTextMessageAsync(message.Chat, @"/stats - Return player status; You must specify epics nickname and platform(optional)
+
+    Sample: /stats Ninja
+
+/recentmatches - List the last 10 recents player matches; You must specify epics nickname and platform(optional)
+
+    Sample: /recentmatches Ninja
+
+/help - Show this help message", ParseMode.Markdown, replyToMessageId: message.MessageId);
         #endregion
 
         private StringBuilder CreateRecentMatchesMessage(FortNitePlayer player)
@@ -131,7 +154,7 @@ namespace FortNiteStatusTelegramBot
             foreach (var item in player.lifeTimeStats.Skip(7))
                 sb.AppendLine($"{item.key}: {item.value}");
 
-            await _bot.SendTextMessageAsync(message.Chat, $"The *{nick}'s* stats on *{player.platformNameLong}* is:{Environment.NewLine}{sb}", Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            await _bot.SendTextMessageAsync(message.Chat, $"The *{nick}'s* stats on *{player.platformNameLong}* is:{Environment.NewLine}{sb}", ParseMode.Markdown, replyToMessageId: message.MessageId);
         }
     }
 }
