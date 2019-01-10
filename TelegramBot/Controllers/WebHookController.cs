@@ -26,16 +26,22 @@ namespace TelegramBot.Controllers
         }
 
         [HttpGet]
-        public async Task Get()
-        {            
-            var url = Request.GetEncodedUrl();
-
-            await _bot.SetWebhookAsync(url).ConfigureAwait(false);
+        public async Task<ActionResult> Get()
+        {
+            try
+            {
+                await _bot.SetWebhookAsync("https://removethisapplater.herokuapp.com/api/webhook").ConfigureAwait(false);
+                return Content("Worked");
+            }
+            catch (System.Exception ex)
+            {
+                return Content(ex.ToString());
+            }
         }
 
         [HttpGet]
         [Route("healthcheck")]
         public ActionResult HealthCheck() 
-            => Content("Running");
+            => Content($"Running {Request.GetEncodedUrl()}");
     }
 }
