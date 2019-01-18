@@ -1,5 +1,6 @@
 ﻿using FortNiteStatus.Core;
 using FortNiteStatus.Core.Models;
+using Humanizer;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -43,41 +44,66 @@ namespace FortNiteStatus.TelegramBot.Commands
         private StringBuilder CreateRecentMatchesMessage(FortNitePlayer player)
         {
             var sb = new StringBuilder();
+            sb.AppendLine("```");
             foreach (var recentmatch in player.recentMatches)
             {
-                if (recentmatch.matches > 1)
-                    sb.Append($"{recentmatch.matches} matches ");
-                else if (recentmatch.top1 == 1)
-                    sb.Append($"*WINNER* ");
-                else if (recentmatch.top3 == 1)
-                    sb.Append($"TOP 3 ");
-                else if (recentmatch.top5 == 1)
-                    sb.Append($"TOP 5 ");
-                else if (recentmatch.top6 == 1)
-                    sb.Append($"TOP 6 ");
-                else if (recentmatch.top10 == 1)
-                    sb.Append($"TOP 10 ");
-                else if (recentmatch.top12 == 1)
-                    sb.Append($"TOP 12 ");
-                else if (recentmatch.top25 == 1)
-                    sb.Append($"TOP 25 ");
-                else
-                    sb.Append($"Defeat ");
-
-                if (recentmatch.playlist == "p9")
-                    sb.Append($"on mode SQUAD ");
-                else if (recentmatch.playlist == "p10")
-                    sb.Append($"on mode DUO ");
-                else if (recentmatch.playlist == "p2")
-                    sb.Append($"on mode SOLO ");
-
-                if (recentmatch.matches > 1 && recentmatch.top1 >= 1)
-                    sb.Append($"*with {recentmatch.top1} wins* ");
-
-                sb.AppendLine($"and had {recentmatch.kills} kills");
+                CreateHeader(sb, recentmatch);
+                CreateBody(sb, recentmatch);
+                sb.AppendLine("".PadLeft(45, '-'));
             }
+            sb.AppendLine("```");
 
             return sb;
+        }
+
+        private static void CreateBody(StringBuilder sb, Recentmatch recentmatch)
+        {
+            if (recentmatch.matches > 1)
+                sb.Append($"{recentmatch.matches} matches".PadRight(18));
+            else if (recentmatch.top1 == 1)
+                sb.Append($"🏆 **WINNER**".PadRight(18));
+            else if (recentmatch.top3 == 1)
+                sb.Append($"3️⃣ TOP 3".PadRight(18));
+            else if (recentmatch.top5 == 1)
+                sb.Append($"5️⃣ TOP 5".PadRight(18));
+            else if (recentmatch.top6 == 1)
+                sb.Append($"6️⃣ TOP 6".PadRight(18));
+            else if (recentmatch.top10 == 1)
+                sb.Append($"🔟 TOP 10".PadRight(18));
+            else if (recentmatch.top12 == 1)
+                sb.Append($"- TOP 12".PadRight(18));
+            else if (recentmatch.top25 == 1)
+                sb.Append($"- TOP 25".PadRight(18));
+            else
+                sb.Append($"🚫 Defeat".PadRight(18));
+
+            if (recentmatch.matches > 1 && recentmatch.top1 >= 1)
+                sb.Append($"🏆 {recentmatch.top1}".PadLeft(4));
+            else
+                sb.Append("".PadLeft(4));
+
+            if (recentmatch.playlist == "p9")
+                sb.Append($"SQUAD".PadLeft(7));
+            else if (recentmatch.playlist == "p10")
+                sb.Append($"DUO".PadLeft(7));
+            else if (recentmatch.playlist == "p2")
+                sb.Append($"SOLO".PadLeft(7));
+
+            sb.Append($"{recentmatch.score}".PadLeft(7));
+            sb.AppendLine($"{recentmatch.kills}".PadLeft(9));
+        }
+
+        private static void CreateHeader(StringBuilder sb, Recentmatch recentmatch)
+        {
+            sb.Append($"🕐 {recentmatch.dateCollected.Humanize()}".PadRight(18));
+            if (recentmatch.matches > 1 && recentmatch.top1 >= 1)
+                sb.Append("WINS".PadLeft(4));
+            else
+                sb.Append("".PadLeft(4));
+
+            sb.Append("MODE".PadLeft(7));
+            sb.Append("SCORE".PadLeft(7));
+            sb.AppendLine("💣 KILLS".PadLeft(9));
         }
     }
 }
