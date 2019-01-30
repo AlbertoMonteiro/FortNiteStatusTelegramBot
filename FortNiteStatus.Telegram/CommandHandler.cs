@@ -19,6 +19,10 @@ namespace FortNiteStatus.TelegramBot
         private readonly IFortNiteTrackerApi _client;
         private readonly TelegramBotClient _bot;
 
+        public CommandHandler(string telegramToken, string trnApiKey)
+            :this(new TelegramBotClient(telegramToken), trnApiKey)
+        { }
+
         public CommandHandler(TelegramBotClient bot, string trnApiKey)
         {
             var ftCommandType = typeof(IFortniteCommand);

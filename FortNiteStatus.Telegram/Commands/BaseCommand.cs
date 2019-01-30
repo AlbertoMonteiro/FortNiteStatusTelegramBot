@@ -7,7 +7,7 @@ using Telegram.Bot.Types;
 
 namespace FortNiteStatus.TelegramBot.Commands
 {
-    internal abstract class BaseCommand : IFortniteCommand
+    public abstract class BaseCommand : IFortniteCommand
     {
         protected readonly IFortNiteTrackerApi _client;
 
