@@ -2,6 +2,7 @@
 using FortNiteStatus.Core.Models;
 using Humanizer;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -46,7 +47,7 @@ namespace FortNiteStatus.TelegramBot.Commands
         {
             var sb = new StringBuilder();
             sb.AppendLine("```");
-            foreach (var recentmatch in player.recentMatches)
+            foreach (var recentmatch in player.recentMatches.Reverse())
             {
                 CreateHeader(sb, recentmatch);
                 CreateBody(sb, recentmatch);
